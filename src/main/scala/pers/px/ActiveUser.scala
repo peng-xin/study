@@ -7,6 +7,20 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.expressions.Window
 
 object ActiveUser{
+
+  /*
+  * rank 与 dense_rank在遇到重复数据时，重复数据产生的序号是相同的
+  * rank 如果有重复，后续数据则会产生空洞，如1,1,2,3,4产生的序号为1,1,3,4,5
+  * dense_rank 如果有重复，后续数据不会产生空洞，如1,1,2,3,4产生的序号为1,1,2,3,4
+  * row_number 则会一直排序，不会对重复数据做特殊处理，如1,1,2,3,4产生的序号为1,2,3,4,5
+  *
+  * 在存在重复连续数值的数据中，求非重复的连续串长度时，可以使用dense_rank或者row_number，
+  * 这两种窗口函数不会因为序列空洞使前后序列产生断链，
+  * 示例1,1,2,3,4的最大连续序列在rank中为3，row_number中为4，在dense_rank中为5（1,1重复）
+  * 求非重连续序列时，row_number可以一次性求出，dense_rank需要额外去重操作
+  *
+  * 示例数据中上述现象会出现在序列为11的user中
+  * */
   def main(args: Array[String]): Unit = {
     val ss = new sql.SparkSession.Builder()
       .master("local")
