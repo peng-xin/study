@@ -1,7 +1,5 @@
 package pers.px;
 
-import java.sql.*;
-import java.text.MessageFormat;
 import java.util.*;
 
 /**
@@ -24,26 +22,26 @@ public class App {
 //        DPCoins.coins(16,new int[]{1,2,5});
 //        DPCoins.cutStell(20,new int[]{0,1,5,8,9,10,17,17,20,24,30});
 
-        int[] source=new int[]{1,2,3,5,7,9,10,12,13};
-        System.out.println(twoSum(new int[]{1,2,3,5,7,9,10,12,13},12));
+        int[] source = new int[]{1, 2, 3, 5, 7, 9, 10, 12, 13};
+        System.out.println(twoSum(new int[]{1, 2, 3, 5, 7, 9, 10, 12, 13}, 12));
     }
 
-    public static int[] next(String nextString){
-        int length=nextString.length();
-        int[] result=new int[length];
-        int index=0,next=-1;
-        result[index]=next;
-        while (index<length){
-            if(next==-1||nextString.charAt(index)==nextString.charAt(next)){
+    public static int[] next(String nextString) {
+        int length = nextString.length();
+        int[] result = new int[length];
+        int index = 0, next = -1;
+        result[index] = next;
+        while (index < length) {
+            if (next == -1 || nextString.charAt(index) == nextString.charAt(next)) {
                 index++;
                 next++;
-                if(result[index]!=result[next]){
-                    result[index]=next;
-                }else {
-                    result[index]=result[next];
+                if (result[index] != result[next]) {
+                    result[index] = next;
+                } else {
+                    result[index] = result[next];
                 }
-            }else {
-                next=result[next];
+            } else {
+                next = result[next];
             }
         }
         return result;
@@ -95,16 +93,16 @@ public class App {
         return maxSum;
     }
 
-    private static List<int[]> twoSum(int[] source,int target){
-        List<int[]> result=new ArrayList<>();
-        Map map=new HashMap();
+    private static List<int[]> twoSum(int[] source, int target) {
+        List<int[]> result = new ArrayList<>();
+        Map map = new HashMap();
         for (int i = 0; i < source.length; i++) {
-            if(map.get(target-source[i])!=null){
-                result.add(new int[]{target-source[i],source[i]});
+            if (map.get(target - source[i]) != null) {
+                result.add(new int[]{target - source[i], source[i]});
             }
-            map.put(source[i],i);
+            map.put(source[i], i);
         }
-        result.forEach(arr-> System.out.println(Arrays.toString(arr)));
+        result.forEach(arr -> System.out.println(Arrays.toString(arr)));
         return result;
     }
 }
