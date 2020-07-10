@@ -7,6 +7,7 @@ import java.util.*;
  */
 public class App {
     public static void main(String[] args) {
+
 //        System.out.println("Hello World!");
 //        AvlTree avlTree = new AvlTree();
 //        avlTree.insert(1);
@@ -23,6 +24,9 @@ public class App {
 //        DPCoins.cutStell(20,new int[]{0,1,5,8,9,10,17,17,20,24,30});
 
         int[] source = new int[]{1, 2, 3, 5, 7, 9, 10, 12, 13};
+        int a=2;
+        source[a]=source[a++];
+
         System.out.println(twoSum(new int[]{1, 2, 3, 5, 7, 9, 10, 12, 13}, 12));
     }
 

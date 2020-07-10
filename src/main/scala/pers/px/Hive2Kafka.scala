@@ -10,6 +10,7 @@ package pers.px
 
 import org.apache.spark.sql
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.types.{FloatType, LongType}
 import org.slf4j.LoggerFactory
 
 object Hive2Kafka {
@@ -53,28 +54,31 @@ object Hive2Kafka {
       .config("dfs.client.failover.proxy.provider.hadoopcluster", "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider")
       .enableHiveSupport().getOrCreate
 
-        ss.sql(inSql).show
+    ss.sql(inSql).select(to_json(struct(col("*"))).alias("jsonData")).show
 
+    ss
+      .sql(inSql)
+      .select(to_json(struct(col("*"))).alias("jsonData"))
+      .withColumn("time",get_json_object(col("jsonData"), "$." + "payment_time"))
+      .show
 
-    //    val hiveDF = ss
-    //      .sql(inSql)
-    //      .select(to_json(struct(col("*"))).alias("jsonData"))
-    //      .withColumn("opr", lit("INSERT"))
-    //      .withColumn("seqNum", lit(current_timestamp().cast(FloatType).*(1000).cast(LongType)))
-    //      .withColumn("etlTime", col("seqNum"))
-    //      .withColumn("rowKey", get_json_object(col("jsonData"), "$." + "key"))
-    //      .withColumn("tblName", lit(s"$tableName"))
-    //      .select(col("rowKey").alias("key"), to_json(struct(col("*"))).alias("value"))
 
     val hiveDF = ss
       .sql(inSql)
-      .select(col("timestamp").alias("key"), to_json(struct(col("*"))).alias("value"))
+      .select(to_json(struct(col("*"))).alias("jsonData"))
+      .withColumn("opr", lit("INSERT"))
+      .withColumn("seqNum", lit(current_timestamp().cast(FloatType).*(1000).cast(LongType)))
+      .withColumn("etlTime", col("seqNum"))
+      .withColumn("rowKey", get_json_object(col("jsonData"), "$." + "key"))
+      .withColumn("tblName", lit(s"$tableName"))
+      .select(col("rowKey").alias("key"), to_json(struct(col("*"))).alias("value"))
 
     hiveDF.write
       .format("kafka")
       .option("kafka.bootstrap.servers", s"$servers")
       .option("topic", s"$topic")
       .option("acks", "all")
+      .option("timestampFormat", "yyyy-MM-dd HH:mm:ss")
       .option("checkpointLocation", s"$path/checkpoint")
       .save()
 
