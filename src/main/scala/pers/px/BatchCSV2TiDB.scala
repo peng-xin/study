@@ -34,7 +34,7 @@ object BatchCSV2TiDB {
       .option("sep", ",")
       .csv(path)
 
-//    csvDF.write
+    //    csvDF.write
     //      .mode("append")
     //      .format("jdbc")
     //      .options(Map(
@@ -46,33 +46,30 @@ object BatchCSV2TiDB {
     //        "batchsize" -> "1000",
     //        "truncate" -> "false")).save()
 
-        csvDF.foreachPartition(iter => {
-          val stateUpdateEncoder = Encoders.product
-          val schema = stateUpdateEncoder.schema
-          if (iter.nonEmpty) {
-            val connection = getConnection()
+    csvDF.foreachPartition(iter => {
+      val stateUpdateEncoder = Encoders.product
+      val schema = stateUpdateEncoder.schema
+      if (iter.nonEmpty) {
+        val connection = getConnection()
 
-            var map = new HashMap[String, String]
-            val list = new ArrayBuffer[Map[String, String]]
-            val dataList = iter.map(internalRow => {
-              schema.foreach(field => {
-                map += (field.name -> String.valueOf(internalRow.get(schema.indexOf(field))))
-              })
-              list += map
-              if (list.size == 100) {
-                TidbUtils.batchIngestDataByMapList(tableName, list.toList)
-                list.clear
-              }
-            })
-            if (list.size > 0) {
-              TidbUtils.batchIngestDataByMapList(tableName, list.toList)
-            }
-            connection.close()
-            Iterator.empty
-          } else {
-            Iterator.empty
+        var map = new HashMap[String, String]
+        val list = new ArrayBuffer[Map[String, String]]
+        val dataList = iter.map(internalRow => {
+          schema.foreach(field => {
+            map += (field.name -> String.valueOf(internalRow.get(schema.indexOf(field))))
+          })
+          list += map
+          if (list.size == 100) {
+            TidbUtils.batchIngestDataByMapList(tableName, list.toList)
+            list.clear
           }
         })
+        if (list.size > 0) {
+          TidbUtils.batchIngestDataByMapList(tableName, list.toList)
+        }
+        connection.close()
+      }
+    })
 
   }
 

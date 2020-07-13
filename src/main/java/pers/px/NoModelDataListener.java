@@ -1,24 +1,20 @@
 package pers.px;
 
 import com.alibaba.excel.context.AnalysisContext;
-import com.alibaba.excel.enums.CellDataTypeEnum;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.alibaba.excel.metadata.Cell;
 import com.alibaba.excel.metadata.CellData;
 import com.alibaba.excel.read.metadata.holder.ReadRowHolder;
 import com.alibaba.excel.util.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static com.alibaba.excel.enums.CellDataTypeEnum.NUMBER;
-
 public class NoModelDataListener extends AnalysisEventListener<Map<Integer, String>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(NoModelDataListener.class);
-    private static final Pattern NUMBER_PATTERN=Pattern.compile("^([+-]?)([1-9]\\d*)(\\.\\d)?[eE]([+-]?)(\\d+)|[+-]?\\d+(\\.\\d*)?|[+-]?\\.\\d+$");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile("^([+-]?)([1-9]\\d*)(\\.\\d)?[eE]([+-]?)(\\d+)|[+-]?\\d+(\\.\\d*)?|[+-]?\\.\\d+$");
 
     private List<String[]> dataList = new LinkedList<>();
     private List<String[]> headList = new LinkedList<>();
@@ -31,7 +27,7 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Stri
     private Integer colEnd = 1;
     private Integer headNumber = 1;
 
-    private Map<Integer, CellDataTypeEnum> schema = new HashMap<>();
+    private Map<Integer, Type> schema = new HashMap<>();
 
     public NoModelDataListener() {
 
@@ -66,7 +62,7 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Stri
             return;
         }
         dataList.add(readData(data, context));
-//        LOGGER.info("row {}'s data is {}", context.readRowHolder().getRowIndex(), data);
+        LOGGER.info("row {}'s data is {}", context.readRowHolder().getRowIndex(), data);
     }
 
     @Override
@@ -104,11 +100,10 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Stri
         for (Map.Entry<Integer, Cell> entry : cellMap.entrySet()) {
             Integer cellIndex = entry.getKey();
             CellData cell = (CellData) entry.getValue();
-            arr[cellIndex] = readData(cellIndex,cell);
+            arr[cellIndex] = readData(cellIndex, cell);
         }
-        System.out.println();
-        System.out.println();
-        System.out.println();
+        System.out.println(Arrays.toString(arr));
+        System.out.println(schema.toString());
         return arr;
     }
 
@@ -130,34 +125,62 @@ public class NoModelDataListener extends AnalysisEventListener<Map<Integer, Stri
         return result;
     }
 
-    private String readData(Integer cellIndex,CellData cellData) {
+    private String readData(Integer cellIndex, CellData cellData) {
         String data = null;
         switch (cellData.getType()) {
             case NUMBER:
                 data = cellData.getNumberValue().toString();
-                schema.put(cellData.getColumnIndex(),cellData.getType());
+                changeType(cellIndex, Type.Number);
                 break;
             case BOOLEAN:
                 data = cellData.getBooleanValue().toString();
+                changeType(cellIndex, Type.Number);
+                break;
+            case STRING:
+                data = resolveString(cellIndex, cellData);
                 break;
             case DIRECT_STRING:
-            case STRING:
             case ERROR:
-                data = cellData.getStringValue();
-                if(NUMBER_PATTERN.matcher(data).matches()){
-                    schema.put(cellIndex,NUMBER);
-                }
-                String tmp=DataTypeUtils.parseDateTime(data);
-                if (tmp != null) {
-                    schema.put(cellIndex,NUMBER);
-                }
-                break;
             case IMAGE:
             default:
-                data = StringUtils.EMPTY;
                 break;
         }
-        LOGGER.info(cellData.getColumnIndex() + "=>" + cellData.getType() + "=>" + data);
+        LOGGER.info(cellIndex + "=>" + cellData.getType() + "=>" + data);
+//        System.out.println(cellData.getColumnIndex() + "=>" + cellData.getType() + "=>" + data);
         return data;
+    }
+
+    private String resolveString(Integer cellIndex, CellData cellData) {
+        String data = cellData.getStringValue();
+        Type type = Type.String;
+        if (NUMBER_PATTERN.matcher(data).matches()) {
+            type = Type.Number;
+        } else {
+            String dateTime = DataTypeUtils.parseDateTime(data);
+            if (dateTime != null) {
+                schema.put(cellIndex, Type.DateTime);
+                data = dateTime;
+            }
+        }
+        changeType(cellIndex, type);
+        return data;
+    }
+
+    private void changeType(Integer cellIndex, Type type) {
+        Type currentType = schema.get(cellIndex);
+        if (currentType == null) {
+            schema.put(cellIndex, type);
+        } else if (currentType != type) {
+            schema.put(cellIndex, Type.String);
+        }
+    }
+}
+
+enum Type {
+    String("String"),
+    Number("Number"),
+    DateTime("DateTime");
+
+    Type(String name) {
     }
 }

@@ -1,6 +1,6 @@
 package pers.px
 
-object MaxSubArray {
+object MaxSubArrayS {
   def main(args: Array[String]): Unit = {
 
   }

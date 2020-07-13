@@ -18,22 +18,6 @@ public class ExcelUtil {
 
     public static void main(String[] args) {
         String fileName = args[0];
-
-        List<SheetReadInfo> sheetReadInfoList = new ArrayList<>();
-        SheetReadInfo sheetReadInfo1 = new SheetReadInfo();
-        sheetReadInfo1.setRowStart(5);
-        sheetReadInfo1.setColStart(3);
-        sheetReadInfo1.setHeadNumber(sheetReadInfo1.getRowStart() + sheetReadInfo1.getHeadNumber() - 1);
-        sheetReadInfoList.add(sheetReadInfo1);
-        SheetReadInfo sheetReadInfo2 = new SheetReadInfo();
-        sheetReadInfo2.setRowStart(10);
-        sheetReadInfo2.setColStart(3);
-        sheetReadInfo2.setHeadNumber(sheetReadInfo2.getRowStart() + sheetReadInfo2.getHeadNumber() - 1);
-        sheetReadInfoList.add(sheetReadInfo2);
-        SheetReadInfo sheetReadInfo3 = new SheetReadInfo();
-        sheetReadInfo3.setRowStart(10);
-        sheetReadInfo3.setHeadNumber(0);
-        sheetReadInfoList.add(sheetReadInfo3);
         readExcel(fileName);
 //        readExcel("C:\\Users\\stphen\\Documents\\WeChat Files\\wxid_9899908997612\\FileStorage\\File\\2020-06\\腾讯云资源服务器-数据中心(1)(1).xlsx", sheetReadInfoList);
     }
@@ -72,7 +56,6 @@ public class ExcelUtil {
         List<ReadSheet> sheetList = excelReader.excelExecutor().sheetList();
 
         for (ReadSheet readSheet : sheetList) {
-            int index = sheetList.indexOf(readSheet);
             NoModelDataListener noModelDataListener = new NoModelDataListener();
             readSheet.setCustomReadListenerList(Collections.singletonList(noModelDataListener));
             LOGGER.info("sheet name is {}", readSheet.getSheetName());
