@@ -36,6 +36,7 @@ object Orc2TiDB {
     ss
       .read
       .orc(inPath)
+      .limit(10)
       .foreachPartition(iter => {
         if (iter.nonEmpty) {
           var map = new HashMap[String, String]
