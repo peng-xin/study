@@ -41,7 +41,7 @@ public class ExcelUtil {
 //                readCsv(fileName);
                 break;
             default:
-                LOGGER.error("fileName must be a doc/docx file");
+                LOGGER.error("{} must be a doc/docx/csv file",fileName);
                 break;
         }
         return null;
