@@ -7,7 +7,7 @@ import org.apache.spark.sql
 object TopN {
   def main(args: Array[String]): Unit = {
     //数据格式：id,studentId,language,math,english,classId,departmentId，即id，学号，语文，数学，外语，班级，院系
-
+    System.setProperty("hadoop.home.dir","D:\\bigdata\\winutils");
     val ss = new sql.SparkSession.Builder()
       .master("local")
       .appName(getClass.getName)
@@ -43,7 +43,13 @@ object TopN {
 
     csvDF.createOrReplaceTempView("scoresTable")
 
-    ss.sql("SELECT id,studentId,language,math,english,classId,departmentId FROM (SELECT *, row_number() OVER (PARTITION BY departmentId,classId ORDER BY language+math+english DESC) rank FROM scoresTable ) tmp WHERE rank <= 3").show
+    ss
+      .sql("SELECT id,studentId,language,math,english,classId,departmentId FROM (SELECT *, row_number() OVER (PARTITION BY departmentId,classId ORDER BY language+math+english DESC) rank FROM scoresTable ) tmp WHERE rank <= 3")
+      .write
+        .csv("file:\\E:\\csv")
+
+
+
 
     println("spark-sql execute cost time:" + (System.currentTimeMillis - start))
 
