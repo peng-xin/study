@@ -1,14 +1,83 @@
 package pers.px;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+
+import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Hello world!
  */
 public class App {
     public static void main(String[] args) {
+        Pattern ST_PATTEN = Pattern.compile("([\\w\\u4e00-\\u9fa5]+)\\.([\\w\\u4e00-\\u9fa5]+)");
+        final Matcher matcher = ST_PATTEN.matcher("excel.订单明细1");
+        System.out.println(matcher.matches());
+
+        try (Connection connection = DriverManager.getConnection
+                ("jdbc:mysql://172.16.117.177:4000/tpcc", "tidb", "tidb@sunlands");
+//        ("jdbc:mysql://172.16.117.96:3306/hive", "hive", "hive");
+        ) {
+            connection.setAutoCommit(false);
+            long s = System.currentTimeMillis();
+            Statement statement = connection.createStatement();
+            statement.executeUpdate("insert into data_warehouse.test(a) values('2'),('2.2'),('222222222222.222222')");
+//            ResultSet resultSet = statement.executeQuery("select  replace('快手|1949445018|口播2-素造-0731-2\t\t\t',char(9),'')");
+            connection.commit();
+            ResultSet resultSet = statement.executeQuery("select orders.account_name,count(*),sum(reser.reservation_price) from f_mid_order_details as orders left join f_mid_reservation as reser on orders.site_id=reser.site_id where orders.payment_date>'2020-08-01' group by orders.account_name");
+            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            System.out.println(resultSetMetaData.getColumnType(1));
+            System.out.println(resultSetMetaData.getColumnTypeName(1));
+            System.out.println(resultSetMetaData.getColumnLabel(1));
+            System.out.println(resultSetMetaData.getColumnClassName(1));
+            while (resultSet.next()) {
+                System.out.println(resultSet.getString(1));
+            }
+            long e = System.currentTimeMillis();
+            System.out.println(Thread.currentThread().getName() + "执行耗时:" + (e - s));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        int begin = 737060;
+//        DateTime dateTime=DateTime.parse("2018-01-01");
+//        while (dateTime.compareTo(DateTime.now())<0){
+//            System.out.println("partition p"+begin+" values less than (to_days('"+dateTime.toString("YYYY-MM-dd")+"'))");
+//            begin+=7;
+//            dateTime=dateTime.plusDays(7);
+//        }
+
+        System.out.println(DateTime.parse("2020-1-1"));
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            System.out.println(simpleDateFormat.parse("2020-01-1"));
+            System.out.println(simpleDateFormat.parse("2020-1-1"));
+            System.out.println(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").parseDateTime("2020-1-1"));
+            System.out.println(DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime("2020-01-1"));
+            System.out.println(DateTimeFormat.forPattern("yyyy/MM/dd").parseDateTime("2020/01/1"));
+            System.out.println(DateTimeFormat.forPattern("MM/dd/yyyy").parseDateTime("01/1/2020"));
+            System.out.println(DateTimeFormat.forPattern("yyyy/MM/dd").parseDateTime(null));
+            System.out.println(DateTimeFormat.forPattern("yyyy/MM/dd").parseDateTime(""));
+            System.out.println(DateTimeFormat.forPattern("yyyy/MM/dd").parseDateTime("12"));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        DateTime.parse("2020-1-1", DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss"));
         ConvertToTitle.convertToTitle(26);
         ConvertToTitle.convertToTitle(701);
+
+
+        System.out.println(ConvertToTitle.convertToTitle(701));
+        System.out.println(ConvertToTitle.convertToTitle(100));
+        System.out.println(ConvertToTitle.convertToTitle(27));
+        System.out.println(ConvertToTitle.convertToTitle(28));
 
         System.out.println(convertSheetHead(701));
         System.out.println(convertSheetHead(100));
@@ -40,14 +109,14 @@ public class App {
     private static String convertSheetHead(int colIndex) {
         StringBuilder result = new StringBuilder();
         while (colIndex > 0) {
-            if(result.length()>0){
-                result.append((char) (65 + colIndex % 26-1));
-            }else {
+            if (result.length() > 0) {
+                result.append((char) (65 + colIndex % 26 - 1));
+            } else {
                 result.append((char) (65 + colIndex % 26));
             }
             colIndex = colIndex / 26;
         }
-        return result.toString();
+        return result.reverse().toString();
     }
 
     public static int[] next(String nextString) {

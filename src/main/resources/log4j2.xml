@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="DEBUG" monitorInterval="600">
+<Configuration status="WARE" monitorInterval="600">
     <Properties>
         <property name="LOG_HOME">./logs/</property>
     </Properties>

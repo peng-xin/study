@@ -31,7 +31,7 @@ object ActiveUser{
 
     val csvDF = ss.read
       .option("header", "true")
-      .csv(URLDecoder.decode(getClass.getResource("/访问数据.csv").getPath, "UTF-8"))
+      .csv("file://"+URLDecoder.decode(getClass.getResource("/访问数据.csv").getPath, "UTF-8"))
 
     val win = Window.partitionBy("user").orderBy("date")
     csvDF.withColumn("rn",row_number() over (win))

@@ -15,7 +15,7 @@ object NewUser {
 
     val csvDF = ss.read
       .option("header", "true")
-      .csv(URLDecoder.decode(getClass.getResource("/访问数据.csv").getPath, "UTF-8"))
+      .csv("file://"+URLDecoder.decode(getClass.getResource("/访问数据.csv").getPath, "UTF-8"))
 
     csvDF.createOrReplaceTempView("newUserTable")
 

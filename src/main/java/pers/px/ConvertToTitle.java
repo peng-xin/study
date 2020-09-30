@@ -15,8 +15,12 @@ public class ConvertToTitle {
 //        System.out.println(result.reverse().toString());
 //
 //        result = new StringBuilder();
-        while (m-- > 0) {
-            result.append((char) (65 + m % 26));
+        while (m > 0) {
+            if(result.length()>0){
+                result.append((char) (65 + (--m) % 26));
+            }else {
+                result.append((char) (65 + m % 26));
+            }
             m = m / 26;
         }
         return result.reverse().toString();
